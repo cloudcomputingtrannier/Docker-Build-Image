@@ -6,17 +6,16 @@ pipeline {
   environment {
     DOCKERHUB_CREDENTIALS = credentials('dockerhub')
   }
-  Stages{
-        stage('calling function'){
+  
+  stages {
+   stage('calling function'){
             steps{
                 script{
                     myfun('${REPO_PATH}','${APP_NAME}')
                 }
              }
          }
-     }
 
-  stages {
     stage('Build') {
       steps {
         sh 'docker build -t lloydmatereke/jenkins-docker-hub .'
