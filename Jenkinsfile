@@ -1,31 +1,29 @@
 pipeline {
-  agent any
-//   options {
-//     buildDiscarder(logRotator(numToKeepStr: '5'))
-//   }
-  environment {
-    DOCKERHUB_CREDENTIALS = credentials('dockerhub')
-  }
-  stages {
-    stage('Build') {
+	agent none  stages {
+  	stage('Maven Install') {
+    	agent {
+      	docker {
+        	image 'maven:3.5.0'
+        }
+      }
       steps {
-        sh 'docker build -t lloydmatereke/jenkins-docker-hub .'
+      	sh 'mvn clean install'
       }
     }
-    stage('Login') {
+    stage('Docker Build') {
+    	agent any
       steps {
-        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+      	sh 'docker build -t shanem/spring-petclinic:latest .'
       }
     }
-    stage('Push') {
+    stage('Docker Push') {
+    	agent any
       steps {
-        sh 'docker push lloydmatereke/jenkins-docker-hub'
+      	withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
+        	sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
+          sh 'docker push shanem/spring-petclinic:latest'
+        }
       }
-    }
-  }
-  post {
-    always {
-      sh 'docker logout'
     }
   }
 }
