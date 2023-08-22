@@ -6,7 +6,7 @@ pipeline {
   environment {
     DOCKERHUB_CREDENTIALS = credentials('dockerhub')
   }
-  stages{
+  Stages{
         stage('calling function'){
             steps{
                 script{
