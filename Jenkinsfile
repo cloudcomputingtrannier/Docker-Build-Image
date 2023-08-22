@@ -1,4 +1,4 @@
-pipeline 
+Pipeline 
 {
     Stages {
         stage  ('Maven Build')
