@@ -1,31 +1,31 @@
-#!groovy
-
-Pipeline {
-	agent none  Stages {
-  	stage('Maven Install') {
-    	agent {
-      	docker {
-        	image 'maven:3.5.0'
-        }
-      }
+pipeline {
+  agent any
+//   options {
+//     buildDiscarder(logRotator(numToKeepStr: '5'))
+//   }
+  environment {
+    DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+  }
+  stages {
+    stage('Build') {
       steps {
-      	sh 'mvn clean install'
+        sh 'docker build -t lloydmatereke/jenkins-docker-hub .'
       }
     }
-    stage('Docker Build') {
-    	agent any
+    stage('Login') {
       steps {
-      	sh 'docker build -t shanem/spring-petclinic:latest .'
+        sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
       }
     }
-    stage('Docker Push') {
-    	agent any
+    stage('Push') {
       steps {
-      	withCredentials([usernamePassword(credentialsId: 'dockerHub', passwordVariable: 'dockerHubPassword', usernameVariable: 'dockerHubUser')]) {
-        	sh "docker login -u ${env.dockerHubUser} -p ${env.dockerHubPassword}"
-          sh 'docker push shanem/spring-petclinic:latest'
-        }
+        sh 'docker push lloydmatereke/jenkins-docker-hub'
       }
+    }
+  }
+  post {
+    always {
+      sh 'docker logout'
     }
   }
 }
